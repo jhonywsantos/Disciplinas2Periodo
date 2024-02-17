@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rifa - Calourada 2024.1</title>
+    <style>
+        .tabela-numeros {
+            display: none;
+        }
+        .tabela-numeros.show {
+            display: block;
+        }
+        .numero-selecionado {
+            display: none;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        table td {
+            border: 1px solid #ccc;
+            padding: 5px;
+            cursor: pointer;
+        }
+        table td.selecionado {
+            background-color: rgb(9, 95, 134);
+            color: white;
+        }
+        table td.inativo {
+            background-color: gray;
+            color: white;
+            cursor: not-allowed;
+        }
+    </style>
+    <script>
+        var numerosSelecionados = [];
+        function mostrarTabelaNumeros() {
+            document.getElementById('tabelaNumeros').classList.add('show');
+        }
+        function selecionarNumero(numero, cell) {
+            if (numerosSelecionados.includes(numero) || cell.classList.contains('inativo')) {
+                return;
+            }
+            numerosSelecionados.push(numero);
+            cell.classList.add('selecionado');
+            document.getElementById('numeroSelecionado').innerText = 'Números selecionados: ' + numerosSelecionados.join(', ');
+        }
+        function cancelarSelecao() {
+            numerosSelecionados.forEach(numero => {
+                document.getElementById(numero).classList.remove('selecionado');
+            });
+            numerosSelecionados = [];
+            document.getElementById('numeroSelecionado').innerText = 'Nenhum número selecionado';
+        }
+        function confirmarEscolha() {
+            if (numerosSelecionados.length > 0) {
+                var confirmacao = confirm('Deseja escolher os números ' + numerosSelecionados.join(', ') + '?');
+                if (confirmacao) {
+                    numerosSelecionados.forEach(numero => {
+                        document.getElementById(numero).classList.add('inativo');
+                    });
+                    alert('Seleção confirmada');
+                    salvarDadosUsuario();
+                } else {
+                    alert('Escolha cancelada');
+                }
+            } else {
+                alert('Por favor, escolha pelo menos um número antes de prosseguir.');
+            }
+        }
+        function salvarDadosUsuario() {
+            var nome = document.getElementById('nome').value;
+            var email = document.getElementById('email').value;
+            var contato = document.getElementById('whatsapp').value;
+            var campus = document.getElementById('campus').value;
+            var curso = document.getElementById('curso').value;
+            var numerosSelecionadosString = numerosSelecionados.join(', ');
+            var dadosUsuario = 'Nome: ' + nome + '\n' +
+                                'Email: ' + email + '\n' +
+                                'Contato: ' + contato + '\n' +
+                                'Campus: ' + campus + '\n' +
+                                'Curso: ' + curso + '\n' +
+                                'Números Selecionados: ' + numerosSelecionadosString + '\n\n';
+
+            var win = window.open('', '_blank');
+            win.document.write('<pre>' + dadosUsuario + '</pre>');
+            var blob = new Blob([dadosUsuario], { type: 'text/plain' });
+            var link = document.createElement('a');
+            link.download = 'dados_usuario_' + nome.replace(/\s/g, '_') + '.txt';
+            link.href = window.URL.createObjectURL(blob);
+            link.click();
+            var dadosTodosUsuarios = dadosUsuario;
+            var blobTodosUsuarios = new Blob([dadosTodosUsuarios], { type: 'text/plain' });
+            var linkTodosUsuarios = document.createElement('a');
+            linkTodosUsuarios.download = 'TodosOsDados.txt';
+            linkTodosUsuarios.href = window.URL.createObjectURL(blobTodosUsuarios);
+            linkTodosUsuarios.click();
+        }
+        function mostrarCursos(campus) {
+            var cursosArapiraca = document.getElementsByClassName('opcoes-arapiraca');
+            var cursosMaceio = document.getElementsByClassName('opcoes-maceio');
+            for (var i = 0; i < cursosArapiraca.length; i++) {
+                cursosArapiraca[i].style.display = (campus === 'arapiraca') ? 'block' : 'none';
+            }
+            for (var j = 0; j < cursosMaceio.length; j++) {
+                cursosMaceio[j].style.display = (campus === 'maceio') ? 'block' : 'none';
+            }
+        }
+        window.onload = function() {
+            var tabelaNumeros = document.getElementById('tabelaNumeros');
+            var tbody = tabelaNumeros.getElementsByTagName('tbody')[0];
+            var numero = 1;
+            for (var i = 0; i < 10; i++) {
+                var row = document.createElement('tr');
+                for (var j = 0; j < 10; j++) {
+                    var cell = document.createElement('td');
+                    cell.textContent = numero;
+                    cell.id = numero;
+                    cell.onclick = (function(numero, cell) {
+                        return function() {
+                            selecionarNumero(numero, cell);
+                        };
+                    })(numero, cell);
+                    row.appendChild(cell);
+                    numero++;
+                }
+                tbody.appendChild(row);
+            }
+            mostrarCursos(document.getElementById('campus').value);
+        };
+    </script>
+</head>
+<body>
+    <h1>Cadastro do(a) Participante</h1>
+    <form action="#" method="post">
+        <label for="nome">Insira seu nome completo:</label><br>
+        <input type="text" id="nome" name="nome" required><br><br>
+        <label for="email">Insira seu e-mail institucional:</label><br>
+        <input type="email" id="email" name="email" required><br><br>
+        <label for="whatsapp">Insira seu número para contato:</label><br>
+        <input type="tel" id="whatsapp" name="whatsapp" pattern="[0-9]{10,11}" required><br><br>
+        <label for="campus">Insira seu campus acadêmico:</label><br>
+        <select id="campus" name="campus" onchange="mostrarCursos(this.value)" required>
+            <option value="">Selecione o campus</option>
+            <option value="arapiraca">Campus Arapiraca - Sede</option>
+            <option value="maceio">Campus A.C Simões - Maceió</option>
+        </select><br><br>
+        <label for="curso">Curso:</label><br>
+        <select id="curso" name="curso" required>
+            <option value="">Selecione o curso</option>
+            <optgroup label="UFAL - Campus Arapiraca" class="opcoes-arapiraca">
+                <option value="Administração Pública">Administração Pública</option>
+                <option value="Administração">Administração</option>
+                <option value="Agronomia">Agronomia</option>
+                <option value="Arquitetura e Urbanismo">Arquitetura e Urbanismo</option>
+                <option value="Ciência da Computação">Ciência da Computação</option>
+                <option value="Ciências Biológicas">Ciências Biológicas</option>
+                <option value="Educação Física">Educação Física</option>
+                <option value="Enfermagem">Enfermagem</option>
+                <option value="Física">Física</option>
+                <option value="Letras - Língua Portuguesa">Letras - Língua Portuguesa</option>
+                <option value="Matemática">Matemática</option>
+                <option value="Medicina">Medicina</option>
+                <option value="Pedagogia">Pedagogia</option>
+                <option value="Química">Química</option>
+                <option value="Zootecnia">Zootecnia</option>
+                <option value="Psicologia">Psicologia</option>
+                <option value="Serviço Social">Serviço Social</option>
+                <option value="Engenharia de Pesca">Engenharia de Pesca</option>
+                <option value="Engenharia de Produção">Engenharia de Produção</option>
+                <option value="Sistemas de Informação">Sistemas de Informação</option>
+                <option value="Turismo">Turismo</option>
+            </optgroup>
+            <optgroup label="UFAL - Campus A.C Simões" class="opcoes-maceio">
+                <option value="Administração">Administração</option>
+                <option value="Arquitetura e Urbanismo">Arquitetura e Urbanismo</option>
+                <option value="Biblioteconomia">Biblioteconomia</option>
+                <option value="Ciência da Computação">Ciência da Computação</option>
+                <option value="Ciências Biológicas">Ciências Biológicas</option>
+                <option value="Ciências Contábeis">Ciências Contábeis</option>
+                <option value="Ciências Econômicas">Ciências Econômicas</option>
+                <option value="Ciências Sociais">Ciências Sociais</option>
+                <option value="Dança">Dança</option>
+                <option value="Design">Design</option>
+                <option value="Direito">Direito</option>
+                <option value="Educação Física">Educação Física</option>
+                <option value="Enfermagem">Enfermagem</option>
+                <option value="Engenharia Ambiental e Sanitária">Engenharia Ambiental e Sanitária</option>
+                <option value="Engenharia Civil">Engenharia Civil</option>
+                <option value="Engenharia de Computação">Engenharia de Computação</option>
+                <option value="Engenharia de Petróleo">Engenharia de Petróleo</option>
+                <option value="Engenharia Química">Engenharia Química</option>
+                <option value="Farmácia">Farmácia</option>
+                <option value="Filosofia">Filosofia</option>
+                <option value="Física">Física</option>
+                <option value="Geografia">Geografia</option>
+                <option value="História">História</option>
+                <option value="Jornalismo">Jornalismo</option>
+                <option value="Letras - Espanhol">Letras - Espanhol</option>
+                <option value="Letras - Francês">Letras - Francês</option>
+                <option value="Letras - Inglês">Letras - Inglês</option>
+                <option value="Letras - Português">Letras - Português</option>
+                <option value="Matemática">Matemática</option>
+                <option value="Medicina">Medicina</option>
+                <option value="Meteorologia">Meteorologia</option>
+                <option value="Nutrição">Nutrição</option>
+                <option value="Odontologia">Odontologia</option>
+                <option value="Pedagogia">Pedagogia</option>
+                <option value="Psicologia">Psicologia</option>
+                <option value="Química Tecnológica e Industrial">Química Tecnológica e Industrial</option>
+                <option value="Química">Química</option>
+                <option value="Relações Públicas">Relações Públicas</option>
+                <option value="Serviço Social">Serviço Social</option>
+                <option value="Teatro">Teatro</option>
+            </optgroup>
+        </select><br><br>
+        <button type="button" onclick="mostrarTabelaNumeros()">Escolher Números</button>
+        <button type="button" onclick="cancelarSelecao()">Cancelar</button><br><br>
+        <div id="numeroSelecionado" class="numero-selecionado">Nenhum número selecionado</div><br>
+        <div id="tabelaNumeros" class="tabela-numeros">
+            <h2>Escolha um ou mais números:</h2>
+            <table>
+                <tbody>
+                </tbody>
+            </table>
+        </div><br>
+        <button type="button" onclick="confirmarEscolha()">Confirmar Escolha</button>
+    </form>
+</body>
+</html>
